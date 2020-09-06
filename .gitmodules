@@ -1,0 +1,3 @@
+[submodule "libs/tesla"]
+	path = libs/tesla
+	url = git@github.com:WerWolv/libtesla
