@@ -58,8 +58,8 @@ namespace Hekate {
         /* 0x98 */          char id[8];
         /* 0xA0 */          char emummc_path[0x78];
         /*      */      };
-		/* 0x98 */      u8 ums;
-		/* 0x98 */      u8 xt_str[0x80];
+        /* 0x98 */      u8 ums;
+        /* 0x98 */      u8 xt_str[0x80];
         /*      */  };
     };
     // clang-format on
