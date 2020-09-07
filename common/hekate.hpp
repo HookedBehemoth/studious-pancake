@@ -78,6 +78,7 @@ namespace Hekate {
     using BootConfigList = std::list<BootConfig>;
 
     BootConfigList LoadBootConfigList();
+    bool RebootDefault();
     bool RebootToConfig(BootConfig const &config);
     bool RebootToUMS(UmsTarget const target);
 

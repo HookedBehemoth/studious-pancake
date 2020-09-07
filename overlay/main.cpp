@@ -51,6 +51,13 @@ class PancakeGui : public tsl::Gui {
         frame->setContent(list);
         return frame;
     }
+
+    virtual bool handleInput(u64 keysDown, u64 keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick, JoystickPosition rightJoyStick) {
+        if (keysDown & KEY_MINUS)
+            Hekate::RebootDefault();
+
+        return false;
+    }
 };
 
 class PancakeOverlay : public tsl::Overlay {

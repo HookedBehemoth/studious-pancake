@@ -92,6 +92,23 @@ namespace Hekate {
         return configs;
     }
 
+    bool RebootDefault() {
+        /* Load payload. */
+        if (!LoadPayload())
+            return false;
+
+        /* Get boot storage pointer. */
+        auto storage = reinterpret_cast<BootStorage *>(g_reboot_payload + BootStorageOffset);
+
+        /* Clear boot storage. */
+        std::memset(storage, 0, sizeof(BootStorage));
+
+        /* Reboot */
+        reboot_to_payload();
+
+        return true;
+    }
+
     bool RebootToConfig(BootConfig const &config) {
         /* Load payload. */
         if (!LoadPayload())
@@ -100,7 +117,10 @@ namespace Hekate {
         /* Get boot storage pointer. */
         auto storage = reinterpret_cast<BootStorage *>(g_reboot_payload + BootStorageOffset);
 
-        /* Set force autoboot and boot id. */
+        /* Clear boot storage. */
+        std::memset(storage, 0, sizeof(BootStorage));
+
+        /* Force autoboot and set boot id. */
         storage->boot_cfg      = BootCfg_ForceAutoBoot;
         storage->autoboot      = config.index;
         storage->autoboot_list = false;
@@ -119,8 +139,13 @@ namespace Hekate {
         /* Get boot storage pointer. */
         auto storage = reinterpret_cast<BootStorage *>(g_reboot_payload + BootStorageOffset);
 
-        /* Set force autoboot and boot id. */
+        /* Clear boot storage. */
+        std::memset(storage, 0, sizeof(BootStorage));
+
+        /* Force boot to menu, target UMS and select target. */
+        storage->boot_cfg  = BootCfg_ForceAutoBoot;
         storage->extra_cfg = ExtraCfg_NyxUms;
+        storage->autoboot  = 0;
         storage->ums       = target;
 
         /* Reboot */
