@@ -37,7 +37,7 @@ class PancakeGui : public tsl::Gui {
 
         for (auto &config : config_list) {
             auto entry = new tsl::elm::ListItem(config.name);
-            entry->setClickListener([&](u64 keys) -> bool { return (keys & KEY_A) && Hekate::RebootToConfig(config); });
+            entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Hekate::RebootToConfig(config); });
             list->addItem(entry);
         }
 
@@ -45,15 +45,15 @@ class PancakeGui : public tsl::Gui {
         list->addItem(new tsl::elm::CategoryHeader("Miscellaneous"));
 
         auto ums = new tsl::elm::ListItem("Reboot to UMS");
-        ums->setClickListener([](u64 keys) -> bool { return (keys & KEY_A) && Hekate::RebootToUMS(Hekate::UmsTarget_Sd); });
+        ums->setClickListener([](u64 keys) -> bool { return (keys & HidNpadButton_A) && Hekate::RebootToUMS(Hekate::UmsTarget_Sd); });
         list->addItem(ums);
 
         frame->setContent(list);
         return frame;
     }
 
-    virtual bool handleInput(u64 keysDown, u64 keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick, JoystickPosition rightJoyStick) {
-        if (keysDown & KEY_MINUS)
+    virtual bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState joyStickPosLeft, HidAnalogStickState joyStickPosRight) {
+        if (keysDown & HidNpadButton_Minus)
             Hekate::RebootDefault();
 
         return false;
