@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Studious Pancake
+ * Copyright (c) 2020-2021 Studious Pancake
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
