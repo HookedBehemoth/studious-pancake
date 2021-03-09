@@ -77,19 +77,24 @@ int main(int argc, char **argv) {
 
     PrintConsole *console = consoleInit(nullptr);
 
+    /* Configure input */
+    padConfigureInput(8, HidNpadStyleSet_NpadStandard);
+
+    /* Initialize pad */
+    PadState pad;
+    padInitializeAny(&pad);
+
     while (appletMainLoop()) {
         {
-            u64 kDown = 0;
+            /* Update padstate */
+            padUpdate(&pad);
 
-            hidScanInput();
+            u64 kDown = padGetButtonsDown(&pad);
 
-            for (int controller = 0; controller < 10; controller++)
-                kDown |= hidKeysDown(static_cast<HidControllerID>(controller));
-
-            if ((kDown & (KEY_PLUS | KEY_B | KEY_L)))
+            if ((kDown & (HidNpadButton_Plus | HidNpadButton_B | HidNpadButton_L)))
                 break;
 
-            if ((kDown & KEY_A)) {
+            if ((kDown & HidNpadButton_A)) {
                 auto &item = items[index];
 
                 if (item.selectable && item.cb)
@@ -98,11 +103,11 @@ int main(int argc, char **argv) {
                 break;
             }
 
-            if ((kDown & KEY_MINUS)) {
+            if ((kDown & HidNpadButton_Minus)) {
                 Hekate::RebootDefault();
             }
 
-            if ((kDown & KEY_DOWN) && (index + 1) < items.size()) {
+            if ((kDown & HidNpadButton_AnyDown) && (index + 1) < items.size()) {
                 for (std::size_t i = index; i < items.size(); i++) {
                     if (!items[i + 1].selectable)
                         continue;
@@ -112,7 +117,7 @@ int main(int argc, char **argv) {
                 }
             }
 
-            if ((kDown & KEY_UP) && index > 0) {
+            if ((kDown & HidNpadButton_AnyUp) && index > 0) {
                 for (std::size_t i = index; i > 0; i--) {
                     if (!items[i - 1].selectable)
                         continue;
