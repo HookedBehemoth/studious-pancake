@@ -13,7 +13,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hekate.hpp"
+#include <hekate.hpp>
+#include <util.hpp>
 
 #include <cstdio>
 #include <cstdlib>
@@ -54,17 +55,30 @@ extern "C" void userAppExit(void) {
 }
 
 int main(int argc, char **argv) {
-    auto config_list = Hekate::LoadBootConfigList();
     std::vector<TuiItem> items;
 
-    items.reserve(config_list.size() + 3);
+    /* Build menu item list */
+    if (util::IsErista()) {
+        /* Load available boot configs */
+        auto config_list = Hekate::LoadBootConfigList();
 
-    items.emplace_back("Configs", nullptr, nullptr, false);
-    for (auto &entry : config_list)
-        items.emplace_back(entry.name, ConfigCallback, &entry, true);
+        /* TODO: Load available ini configs */
 
-    items.emplace_back("Miscellaneous", nullptr, nullptr, false);
-    items.emplace_back("Reboot to UMS", UmsCallback, nullptr, true);
+        items.reserve(config_list.size() + 4);
+
+        items.emplace_back("Configs", nullptr, nullptr, false);
+        for (auto &entry : config_list)
+            items.emplace_back(entry.name, ConfigCallback, &entry, true);
+
+        items.emplace_back("Miscellaneous", nullptr, nullptr, false);
+        items.emplace_back("Reboot to UMS", UmsCallback, nullptr, true);
+    } else {
+        items.reserve(2);
+
+        items.emplace_back("Mariko consoles unsupported", nullptr, nullptr, false);
+    }
+
+    items.emplace_back("Exit", nullptr, nullptr, true);
 
     std::size_t index = 0;
 

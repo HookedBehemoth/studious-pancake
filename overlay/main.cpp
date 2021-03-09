@@ -14,9 +14,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #define TESLA_INIT_IMPL
-#include "hekate.hpp"
+#include <hekate.hpp>
+#include <util.hpp>
 
 #include <tesla.hpp>
+
+namespace {
+
+    constexpr const char AppTitle[] = "Studius Pancake";
+    constexpr const char AppVersion[] = "0.2.0";
+
+}
 
 class PancakeGui : public tsl::Gui {
   private:
@@ -28,7 +36,7 @@ class PancakeGui : public tsl::Gui {
     }
 
     virtual tsl::elm::Element *createUI() override {
-        auto frame = new tsl::elm::OverlayFrame("Studious Pancake", "v0.1.0");
+        auto frame = new tsl::elm::OverlayFrame(AppTitle, AppVersion);
 
         auto list = new tsl::elm::List();
 
@@ -60,6 +68,22 @@ class PancakeGui : public tsl::Gui {
     }
 };
 
+class MarikoMenu : public tsl::Gui {
+  public:
+    virtual tsl::elm::Element *createUI() override {
+        auto frame = new tsl::elm::OverlayFrame(AppTitle, AppVersion);
+
+        /* Display incompatibility error */
+        auto drawer = new tsl::elm::CustomDrawer([](tsl::gfx::Renderer* r, s32 x, s32 y, s32 w, s32 h) {
+            r->drawString("\uE150", false, x + (w / 2) - (90 / 2), 300, 90, 0xffff);
+            r->drawString("Mariko consoles unsupported", false, x, 380, 25, 0xffff);
+        });
+
+        frame->setContent(drawer);
+        return frame;
+    }
+};
+
 class PancakeOverlay : public tsl::Overlay {
   public:
     virtual void initServices() override {
@@ -73,7 +97,11 @@ class PancakeOverlay : public tsl::Overlay {
     }
 
     virtual std::unique_ptr<tsl::Gui> loadInitialGui() override {
-        return std::make_unique<PancakeGui>();
+        if (util::IsErista()) {
+            return std::make_unique<PancakeGui>();
+        } else {
+            return std::make_unique<MarikoMenu>();
+        }
     }
 };
 
