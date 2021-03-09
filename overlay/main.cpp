@@ -28,11 +28,13 @@ namespace {
 
 class PancakeGui : public tsl::Gui {
   private:
-    Hekate::BootConfigList const config_list;
+    Hekate::BootConfigList const boot_config_list;
+    Hekate::BootConfigList const ini_config_list;
 
   public:
     PancakeGui()
-        : config_list(Hekate::LoadBootConfigList()) {
+        : boot_config_list(Hekate::LoadBootConfigList()),
+          ini_config_list(Hekate::LoadIniConfigList()) {
     }
 
     virtual tsl::elm::Element *createUI() override {
@@ -41,12 +43,25 @@ class PancakeGui : public tsl::Gui {
         auto list = new tsl::elm::List();
 
         /* Append boot config entries. */
-        list->addItem(new tsl::elm::CategoryHeader("Boot configs"));
+        if (!boot_config_list.empty()) {
+            list->addItem(new tsl::elm::CategoryHeader("Boot configs"));
 
-        for (auto &config : config_list) {
-            auto entry = new tsl::elm::ListItem(config.name);
-            entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Hekate::RebootToConfig(config); });
-            list->addItem(entry);
+            for (auto &config : boot_config_list) {
+                auto entry = new tsl::elm::ListItem(config.name);
+                entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Hekate::RebootToConfig(config, false); });
+                list->addItem(entry);
+            }
+        }
+
+        /* Append ini config entries. */
+        if (!ini_config_list.empty()) {
+            list->addItem(new tsl::elm::CategoryHeader("Ini configs"));
+
+            for (auto &config : ini_config_list) {
+                auto entry = new tsl::elm::ListItem(config.name);
+                entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Hekate::RebootToConfig(config, true); });
+                list->addItem(entry);
+            }
         }
 
         /* Miscellaneous. */

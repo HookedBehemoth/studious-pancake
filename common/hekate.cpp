@@ -21,6 +21,8 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <dirent.h>
+#include <span>
 
 namespace Hekate {
 
@@ -92,6 +94,54 @@ namespace Hekate {
         return configs;
     }
 
+    BootConfigList LoadIniConfigList() {
+        BootConfigList configs;
+
+        if (chdir("sdmc:/bootloader/ini") != 0)
+            return configs;
+
+        /* Open ini folder */
+        auto dirp = opendir(".");
+        if (dirp == nullptr)
+            return configs;
+
+        u32 count=0;
+        char dir_entries[8][0x100];
+
+        /* Get entries */
+        while (auto dent = readdir(dirp)) {
+            if (dent->d_type != DT_REG)
+                continue;
+
+            std::strcpy(dir_entries[count++], dent->d_name);
+
+            if (count == std::size(dir_entries))
+                break;
+        }
+
+        /* Reorder ini files by ASCII ordering. */
+        char temp[0x100];
+        for (size_t i = 0; i < count - 1 ; i++) {
+            for (size_t j = i + 1; j < count; j++) {
+                if (std::strcmp(dir_entries[i], dir_entries[j]) > 0) {
+                    std::strcpy(temp, dir_entries[i]);
+                    std::strcpy(dir_entries[i], dir_entries[j]);
+                    std::strcpy(dir_entries[j], temp);
+                }
+            }
+        }
+
+        /* parse config */
+        for (auto &entry : std::span(dir_entries, count))
+            ini_parse(entry, BootConfigHandler, &configs);
+
+        closedir(dirp);
+
+        chdir("sdmc:/");
+
+        return configs;
+    }
+
     bool RebootDefault() {
         /* Load payload. */
         if (!LoadPayload())
@@ -109,7 +159,7 @@ namespace Hekate {
         return true;
     }
 
-    bool RebootToConfig(BootConfig const &config) {
+    bool RebootToConfig(BootConfig const &config, bool autoboot_list) {
         /* Load payload. */
         if (!LoadPayload())
             return false;
@@ -123,7 +173,7 @@ namespace Hekate {
         /* Force autoboot and set boot id. */
         storage->boot_cfg      = BootCfg_ForceAutoBoot;
         storage->autoboot      = config.index;
-        storage->autoboot_list = false;
+        storage->autoboot_list = autoboot_list;
 
         /* Reboot */
         reboot_to_payload();

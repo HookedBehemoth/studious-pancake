@@ -32,10 +32,16 @@ namespace {
         bool selectable;
     };
 
-    void ConfigCallback(void *user) {
+    void BootConfigCallback(void *user) {
         auto config = reinterpret_cast<Hekate::BootConfig *>(user);
 
-        Hekate::RebootToConfig(*config);
+        Hekate::RebootToConfig(*config, false);
+    }
+
+    void IniConfigCallback(void *user) {
+        auto config = reinterpret_cast<Hekate::BootConfig *>(user);
+
+        Hekate::RebootToConfig(*config, true);
     }
 
     void UmsCallback(void *user) {
@@ -57,18 +63,28 @@ extern "C" void userAppExit(void) {
 int main(int argc, char **argv) {
     std::vector<TuiItem> items;
 
+    /* Load available boot configs */
+    auto boot_config_list = Hekate::LoadBootConfigList();
+
+    /* Load available ini configs */
+    auto ini_config_list = Hekate::LoadIniConfigList();
+
     /* Build menu item list */
     if (util::IsErista()) {
-        /* Load available boot configs */
-        auto config_list = Hekate::LoadBootConfigList();
+        items.reserve(3 + boot_config_list.empty() ? 0 : 1 + boot_config_list.size()
+                        + ini_config_list.empty()  ? 0 : 1 + ini_config_list.size());
 
-        /* TODO: Load available ini configs */
+        if (!boot_config_list.empty()) {
+            items.emplace_back("Boot Configs", nullptr, nullptr, false);
+            for (auto &entry : boot_config_list)
+                items.emplace_back(entry.name, BootConfigCallback, &entry, true);
+        }
 
-        items.reserve(config_list.size() + 4);
-
-        items.emplace_back("Configs", nullptr, nullptr, false);
-        for (auto &entry : config_list)
-            items.emplace_back(entry.name, ConfigCallback, &entry, true);
+        if (!ini_config_list.empty()) {
+            items.emplace_back("Ini Configs", nullptr, nullptr, false);
+            for (auto &entry : ini_config_list)
+                items.emplace_back(entry.name, IniConfigCallback, &entry, true);
+        }
 
         items.emplace_back("Miscellaneous", nullptr, nullptr, false);
         items.emplace_back("Reboot to UMS", UmsCallback, nullptr, true);
