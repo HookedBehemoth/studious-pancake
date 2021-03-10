@@ -22,7 +22,7 @@
 namespace {
 
     constexpr const char AppTitle[] = "Studius Pancake";
-    constexpr const char AppVersion[] = "0.2.0";
+    constexpr const char AppVersion[] = "0.2.1";
 
 }
 
