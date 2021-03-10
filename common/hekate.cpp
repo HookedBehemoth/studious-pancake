@@ -119,14 +119,16 @@ namespace Hekate {
                 break;
         }
 
-        /* Reorder ini files by ASCII ordering. */
-        char temp[0x100];
-        for (size_t i = 0; i < count - 1 ; i++) {
-            for (size_t j = i + 1; j < count; j++) {
-                if (std::strcmp(dir_entries[i], dir_entries[j]) > 0) {
-                    std::strcpy(temp, dir_entries[i]);
-                    std::strcpy(dir_entries[i], dir_entries[j]);
-                    std::strcpy(dir_entries[j], temp);
+        if (count > 1) {
+            /* Reorder ini files by ASCII ordering. */
+            char temp[0x100];
+            for (size_t i = 0; i < count - 1 ; i++) {
+                for (size_t j = i + 1; j < count; j++) {
+                    if (std::strcmp(dir_entries[i], dir_entries[j]) > 0) {
+                        std::strcpy(temp, dir_entries[i]);
+                        std::strcpy(dir_entries[i], dir_entries[j]);
+                        std::strcpy(dir_entries[j], temp);
+                    }
                 }
             }
         }
