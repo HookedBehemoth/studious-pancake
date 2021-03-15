@@ -81,7 +81,8 @@ int main(int argc, char **argv) {
     /* Build menu item list */
     if (util::IsErista()) {
         items.reserve(3 + boot_config_list.empty() ? 0 : 1 + boot_config_list.size()
-                        + ini_config_list.empty()  ? 0 : 1 + ini_config_list.size());
+                        + ini_config_list.empty()  ? 0 : 1 + ini_config_list.size()
+                        + payload_config_list.empty()  ? 0 : 1 + payload_config_list.size());
 
         if (!boot_config_list.empty()) {
             items.emplace_back("Boot Configs", nullptr, nullptr, false);
