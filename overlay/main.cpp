@@ -20,13 +20,6 @@
 
 #include <tesla.hpp>
 
-namespace {
-
-    constexpr const char AppTitle[] = "Studius Pancake";
-    constexpr const char AppVersion[] = "0.2.1";
-
-}
-
 class PancakeGui : public tsl::Gui {
   private:
     Hekate::BootConfigList const boot_config_list;
@@ -41,7 +34,7 @@ class PancakeGui : public tsl::Gui {
     }
 
     virtual tsl::elm::Element *createUI() override {
-        auto frame = new tsl::elm::OverlayFrame(AppTitle, AppVersion);
+        auto frame = new tsl::elm::OverlayFrame(APP_TITLE, APP_VERSION);
 
         auto list = new tsl::elm::List();
 
@@ -100,7 +93,7 @@ class PancakeGui : public tsl::Gui {
 class MarikoMenu : public tsl::Gui {
   public:
     virtual tsl::elm::Element *createUI() override {
-        auto frame = new tsl::elm::OverlayFrame(AppTitle, AppVersion);
+        auto frame = new tsl::elm::OverlayFrame(APP_TITLE, APP_VERSION);
 
         /* Display incompatibility error */
         auto drawer = new tsl::elm::CustomDrawer([](tsl::gfx::Renderer* r, s32 x, s32 y, s32 w, s32 h) {
