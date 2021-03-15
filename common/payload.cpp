@@ -186,6 +186,8 @@ namespace Payload {
                 if(name.substr(name.size() - 4) == ".bin")
                     res.push_back({name.substr(0, name.size() - 4), (path + name)});
             }
+
+            closedir(dirp);
         }
         chdir("sdmc:/");
         return res;
