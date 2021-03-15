@@ -24,7 +24,6 @@
 #include <dirent.h>
 #include <span>
 #include <vector>
-#include <switch.h>
 
 namespace Payload {
 
