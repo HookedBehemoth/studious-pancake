@@ -15,7 +15,6 @@
  */
 #pragma once
 
-#include <list>
 #include <string>
 #include <switch.h>
 #include <vector>
