@@ -23,6 +23,8 @@
 #include <cstring>
 #include <dirent.h>
 #include <span>
+#include <vector>
+#include <switch.h>
 
 namespace Hekate {
 
@@ -60,27 +62,40 @@ namespace Hekate {
             "sdmc:/sept/payload.bin",
         };
 
-        bool LoadPayload() {
+        constexpr char const *const PayloadDirs[] = {
+            "sdmc:/",
+            "sdmc:/bootloader/payloads/",
+            "sdmc:/payloads/",
+        };
+
+        bool LoadPayload(const char* path) {
+            /* Clear payload buffer. */
+            std::memset(g_reboot_payload, 0xFF, sizeof(g_reboot_payload));
+
+            /* Open payload. */
+            auto file = fopen(path, "r");
+            if (file == nullptr)
+                return false;
+
+            /* Read payload to buffer. */
+            std::size_t ret = fread(g_reboot_payload, 1, sizeof(g_reboot_payload), file);
+
+            /* Close file. */
+            fclose(file);
+
+            /* Verify payload loaded successfully. */
+            if (ret == 0)
+                return false;
+
+            return true;
+        }
+
+        bool LoadHekatePayload() {
+            /* Iterate through the payload dirs */
             for (auto path : PayloadPaths) {
-                /* Clear payload buffer. */
-                std::memset(g_reboot_payload, 0xFF, sizeof(g_reboot_payload));
-
-                /* Open potential hekate payload. */
-                auto file = fopen(path, "r");
-                if (file == nullptr)
-                    continue;
-
-                /* Read payload to buffer. */
-                std::size_t ret = fread(g_reboot_payload, 1, sizeof(g_reboot_payload), file);
-
-                /* Close file. */
-                fclose(file);
-
-                /* Verify hekate payload loaded successfully. */
-                if (ret == 0 || *(u32 *)(g_reboot_payload + Hekate::MagicOffset) != Hekate::Magic)
-                    continue;
-
-                return true;
+                /* Try loading the payload */
+                if(LoadPayload(path))
+                    return true;
             }
 
             return false;
@@ -144,9 +159,43 @@ namespace Hekate {
         return configs;
     }
 
+    PayloadConfigVector LoadPayloadList() {
+        PayloadConfigVector res;
+
+        /* Iterate through all the payload folders */
+        for (const auto& path : PayloadDirs) {
+
+            if (chdir(path) != 0)
+                continue;
+
+            /* Open `path` folder */
+            auto dirp = opendir(".");
+            if (dirp == nullptr)
+                continue;
+
+            u32 count=0;
+            char dir_entries[8][0x100];
+
+            /* Get entries */
+            while (auto dent = readdir(dirp)) {
+                if (dent->d_type != DT_REG)
+                    continue;
+                
+                std::string name(dent->d_name);
+                if(name.substr(name.size() - 4) == ".bin")
+                    res.push_back({name.substr(0, name.size() - 4), (path + name)});
+
+                if (count == std::size(dir_entries))
+                    break;
+            }
+        }
+        chdir("sdmc:/");
+        return res;
+    }
+
     bool RebootDefault() {
         /* Load payload. */
-        if (!LoadPayload())
+        if (!LoadHekatePayload())
             return false;
 
         /* Get boot storage pointer. */
@@ -163,7 +212,7 @@ namespace Hekate {
 
     bool RebootToConfig(BootConfig const &config, bool autoboot_list) {
         /* Load payload. */
-        if (!LoadPayload())
+        if (!LoadHekatePayload())
             return false;
 
         /* Get boot storage pointer. */
@@ -185,7 +234,7 @@ namespace Hekate {
 
     bool RebootToUMS(UmsTarget const target) {
         /* Load payload. */
-        if (!LoadPayload())
+        if (!LoadHekatePayload())
             return false;
 
         /* Get boot storage pointer. */
@@ -199,6 +248,17 @@ namespace Hekate {
         storage->extra_cfg = ExtraCfg_NyxUms;
         storage->autoboot  = 0;
         storage->ums       = target;
+
+        /* Reboot */
+        reboot_to_payload();
+
+        return true;
+    }
+
+    bool RebootToPayload(PayloadConfig const &config) {
+        /* Load payload. */
+        if (!LoadPayload(config.path.c_str()))
+            return false;
 
         /* Reboot */
         reboot_to_payload();

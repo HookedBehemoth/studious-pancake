@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <hekate.hpp>
-#include <payloads.hpp>
 #include <util.hpp>
 
 #include <cstdio>
@@ -52,9 +51,9 @@ namespace {
     }
 
     void PayloadCallback(void *user) {
-        auto config = reinterpret_cast<Payloads::PayloadConfig *>(user);
+        auto config = reinterpret_cast<Hekate::PayloadConfig *>(user);
 
-        Payloads::RebootToPayload(*config);
+        Hekate::RebootToPayload(*config);
     }
 }
 
@@ -76,7 +75,7 @@ int main(int argc, char **argv) {
     auto ini_config_list = Hekate::LoadIniConfigList();
 
     /* Load available payloads */
-    auto payload_config_list = Payloads::LoadPayloadList();
+    auto payload_config_list = Hekate::LoadPayloadList();
 
     /* Build menu item list */
     if (util::IsErista()) {

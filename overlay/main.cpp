@@ -15,7 +15,6 @@
  */
 #define TESLA_INIT_IMPL
 #include <hekate.hpp>
-#include <payloads.hpp>
 #include <util.hpp>
 
 #include <tesla.hpp>
@@ -24,13 +23,13 @@ class PancakeGui : public tsl::Gui {
   private:
     Hekate::BootConfigList const boot_config_list;
     Hekate::BootConfigList const ini_config_list;
-    Payloads::PayloadConfigVector const payload_config_list;
+    Hekate::PayloadConfigVector const payload_config_list;
 
   public:
     PancakeGui()
         : boot_config_list(Hekate::LoadBootConfigList()),
           ini_config_list(Hekate::LoadIniConfigList()),
-          payload_config_list(Payloads::LoadPayloadList()) {
+          payload_config_list(Hekate::LoadPayloadList()) {
     }
 
     virtual tsl::elm::Element *createUI() override {
@@ -73,7 +72,7 @@ class PancakeGui : public tsl::Gui {
 
             for (auto &config : payload_config_list) {
                 auto entry = new tsl::elm::ListItem(config.name);
-                entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Payloads::RebootToPayload(config); });
+                entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Hekate::RebootToPayload(config); });
                 list->addItem(entry);
             }
         }

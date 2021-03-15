@@ -17,6 +17,7 @@
 
 #include <list>
 #include <string>
+#include <vector>
 #include <switch.h>
 
 namespace Hekate {
@@ -77,12 +78,21 @@ namespace Hekate {
         std::size_t index;
     };
 
+    struct PayloadConfig {
+        std::string name;
+        std::string path;
+    };
+
     using BootConfigList = std::list<BootConfig>;
+    using PayloadConfigVector = std::vector<PayloadConfig>;
 
     BootConfigList LoadBootConfigList();
     BootConfigList LoadIniConfigList();
+    PayloadConfigVector LoadPayloadList();
     bool RebootDefault();
     bool RebootToConfig(BootConfig const &config, bool autoboot_list);
     bool RebootToUMS(UmsTarget const target);
+    bool RebootToPayload(PayloadConfig const &config);
+
 
 }
