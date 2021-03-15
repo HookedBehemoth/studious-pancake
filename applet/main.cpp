@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
 
     /* Build menu item list */
     if (util::IsErista()) {
-        items.reserve(3 + boot_config_list.empty() ? 0 : 1 + boot_config_list.size()
+        items.reserve(2 + boot_config_list.empty() ? 0 : 1 + boot_config_list.size()
                         + ini_config_list.empty()  ? 0 : 1 + ini_config_list.size()
                         + payload_config_list.empty()  ? 0 : 1 + payload_config_list.size());
 
@@ -105,12 +105,8 @@ int main(int argc, char **argv) {
         }
 
     } else {
-        items.reserve(2);
-
-        items.emplace_back("Mariko consoles unsupported", nullptr, nullptr, false);
+        items.emplace_back("Mariko consoles unsupported", nullptr, nullptr, true);
     }
-
-    items.emplace_back("Exit", nullptr, nullptr, true);
 
     std::size_t index = 0;
 
