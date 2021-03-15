@@ -67,7 +67,7 @@ namespace Payload {
             "sdmc:/payloads/",
         };
 
-        bool LoadPayload(const char* path) {
+        bool LoadPayload(const char* path, bool hekate) {
             /* Clear payload buffer. */
             std::memset(g_reboot_payload, 0xFF, sizeof(g_reboot_payload));
 
@@ -82,9 +82,17 @@ namespace Payload {
             /* Close file. */
             fclose(file);
 
+            /* Verify hekate payload loaded successfully. */
+            if(hekate) {
+                if (ret == 0 || *(u32 *)(g_reboot_payload + Payload::MagicOffset) != Payload::Magic)
+                    return false;
+            }
+
             /* Verify payload loaded successfully. */
-            if (ret == 0)
-                return false;
+            else{
+                if(ret == 0)
+                    return false;
+            }
 
             return true;
         }
@@ -93,7 +101,7 @@ namespace Payload {
             /* Iterate through the payload dirs */
             for (auto path : PayloadPaths) {
                 /* Try loading the payload */
-                if(LoadPayload(path))
+                if(LoadPayload(path, true))
                     return true;
             }
 
@@ -257,7 +265,7 @@ namespace Payload {
 
     bool RebootToPayload(PayloadConfig const &config) {
         /* Load payload. */
-        if (!LoadPayload(config.path.c_str()))
+        if (!LoadPayload(config.path.c_str(), false))
             return false;
 
         /* Reboot */
