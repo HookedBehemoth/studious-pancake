@@ -82,12 +82,12 @@ namespace Payload {
             /* Close file. */
             fclose(file);
 
-            /* Check if hekate payload loaded successfully. */
-            if(hekate && *(u32 *)(g_reboot_payload + Payload::MagicOffset) != Payload::Magic)
-                return false;
-
             /* Verify payload loaded successfully. */
             if(ret == 0)
+                return false;
+
+            /* Check if payload has hekate magic. */
+            if(hekate && *(u32 *)(g_reboot_payload + Payload::MagicOffset) != Payload::Magic)
                 return false;
 
             return true;
@@ -176,9 +176,6 @@ namespace Payload {
             if (dirp == nullptr)
                 continue;
 
-            u32 count=0;
-            char dir_entries[8][0x100];
-
             /* Get entries */
             while (auto dent = readdir(dirp)) {
                 if (dent->d_type != DT_REG)
@@ -188,9 +185,6 @@ namespace Payload {
                 std::string name(dent->d_name);
                 if(name.substr(name.size() - 4) == ".bin")
                     res.push_back({name.substr(0, name.size() - 4), (path + name)});
-
-                if (count == std::size(dir_entries))
-                    break;
             }
         }
         chdir("sdmc:/");
