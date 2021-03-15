@@ -15,6 +15,7 @@
  */
 #define TESLA_INIT_IMPL
 #include <hekate.hpp>
+#include <payloads.hpp>
 #include <util.hpp>
 
 #include <tesla.hpp>
@@ -30,11 +31,13 @@ class PancakeGui : public tsl::Gui {
   private:
     Hekate::BootConfigList const boot_config_list;
     Hekate::BootConfigList const ini_config_list;
+    Payloads::PayloadConfigVector const payload_config_list;
 
   public:
     PancakeGui()
         : boot_config_list(Hekate::LoadBootConfigList()),
-          ini_config_list(Hekate::LoadIniConfigList()) {
+          ini_config_list(Hekate::LoadIniConfigList()),
+          payload_config_list(Payloads::LoadPayloadList()) {
     }
 
     virtual tsl::elm::Element *createUI() override {
@@ -70,6 +73,17 @@ class PancakeGui : public tsl::Gui {
         auto ums = new tsl::elm::ListItem("Reboot to UMS");
         ums->setClickListener([](u64 keys) -> bool { return (keys & HidNpadButton_A) && Hekate::RebootToUMS(Hekate::UmsTarget_Sd); });
         list->addItem(ums);
+
+        /* Payloads */
+        if (!payload_config_list.empty()) {
+            list->addItem(new tsl::elm::CategoryHeader("Payloads"));
+
+            for (auto &config : payload_config_list) {
+                auto entry = new tsl::elm::ListItem(config.name);
+                entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Payloads::RebootToPayload(config); });
+                list->addItem(entry);
+            }
+        }
 
         frame->setContent(list);
         return frame;

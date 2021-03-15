@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <hekate.hpp>
+#include <payloads.hpp>
 #include <util.hpp>
 
 #include <cstdio>
@@ -50,6 +51,11 @@ namespace {
         (void)user;
     }
 
+    void PayloadCallback(void *user) {
+        auto config = reinterpret_cast<Payloads::PayloadConfig *>(user);
+
+        Payloads::RebootToPayload(*config);
+    }
 }
 
 extern "C" void userAppInit(void) {
@@ -68,6 +74,9 @@ int main(int argc, char **argv) {
 
     /* Load available ini configs */
     auto ini_config_list = Hekate::LoadIniConfigList();
+
+    /* Load available payloads */
+    auto payload_config_list = Payloads::LoadPayloadList();
 
     /* Build menu item list */
     if (util::IsErista()) {
@@ -88,6 +97,13 @@ int main(int argc, char **argv) {
 
         items.emplace_back("Miscellaneous", nullptr, nullptr, false);
         items.emplace_back("Reboot to UMS", UmsCallback, nullptr, true);
+
+        if (!payload_config_list.empty()) {
+            items.emplace_back("Payloads", nullptr, nullptr, false);
+            for (auto &entry : payload_config_list)
+                items.emplace_back(entry.name, PayloadCallback, &entry, true);
+        }
+
     } else {
         items.reserve(2);
 

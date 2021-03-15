@@ -38,6 +38,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #   NACP building is skipped as well.
 #---------------------------------------------------------------------------------
 APP_TITLE	:=	Studious Pancake
+APP_AUTHOR	:=	HookedBehemoth
 APP_VERSION :=	0.2.1
 
 TARGET		:=	applet/$(notdir $(CURDIR))
