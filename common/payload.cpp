@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hekate.hpp"
+#include "payload.hpp"
 
 #include "ini.h"
 #include "reboot_to_payload.h"
@@ -26,7 +26,7 @@
 #include <vector>
 #include <switch.h>
 
-namespace Hekate {
+namespace Payload {
 
     namespace {
 
@@ -180,7 +180,8 @@ namespace Hekate {
             while (auto dent = readdir(dirp)) {
                 if (dent->d_type != DT_REG)
                     continue;
-                
+
+                /* Get payloads */
                 std::string name(dent->d_name);
                 if(name.substr(name.size() - 4) == ".bin")
                     res.push_back({name.substr(0, name.size() - 4), (path + name)});

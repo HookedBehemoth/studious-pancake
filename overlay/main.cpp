@@ -14,22 +14,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #define TESLA_INIT_IMPL
-#include <hekate.hpp>
+#include <payload.hpp>
 #include <util.hpp>
 
 #include <tesla.hpp>
 
 class PancakeGui : public tsl::Gui {
   private:
-    Hekate::BootConfigList const boot_config_list;
-    Hekate::BootConfigList const ini_config_list;
-    Hekate::PayloadConfigVector const payload_config_list;
+    Payload::BootConfigList const boot_config_list;
+    Payload::BootConfigList const ini_config_list;
+    Payload::PayloadConfigVector const payload_config_list;
 
   public:
     PancakeGui()
-        : boot_config_list(Hekate::LoadBootConfigList()),
-          ini_config_list(Hekate::LoadIniConfigList()),
-          payload_config_list(Hekate::LoadPayloadList()) {
+        : boot_config_list(Payload::LoadBootConfigList()),
+          ini_config_list(Payload::LoadIniConfigList()),
+          payload_config_list(Payload::LoadPayloadList()) {
     }
 
     virtual tsl::elm::Element *createUI() override {
@@ -43,7 +43,7 @@ class PancakeGui : public tsl::Gui {
 
             for (auto &config : boot_config_list) {
                 auto entry = new tsl::elm::ListItem(config.name);
-                entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Hekate::RebootToConfig(config, false); });
+                entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Payload::RebootToConfig(config, false); });
                 list->addItem(entry);
             }
         }
@@ -54,7 +54,7 @@ class PancakeGui : public tsl::Gui {
 
             for (auto &config : ini_config_list) {
                 auto entry = new tsl::elm::ListItem(config.name);
-                entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Hekate::RebootToConfig(config, true); });
+                entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Payload::RebootToConfig(config, true); });
                 list->addItem(entry);
             }
         }
@@ -63,7 +63,7 @@ class PancakeGui : public tsl::Gui {
         list->addItem(new tsl::elm::CategoryHeader("Miscellaneous"));
 
         auto ums = new tsl::elm::ListItem("Reboot to UMS");
-        ums->setClickListener([](u64 keys) -> bool { return (keys & HidNpadButton_A) && Hekate::RebootToUMS(Hekate::UmsTarget_Sd); });
+        ums->setClickListener([](u64 keys) -> bool { return (keys & HidNpadButton_A) && Payload::RebootToUMS(Payload::UmsTarget_Sd); });
         list->addItem(ums);
 
         /* Payloads */
@@ -72,7 +72,7 @@ class PancakeGui : public tsl::Gui {
 
             for (auto &config : payload_config_list) {
                 auto entry = new tsl::elm::ListItem(config.name);
-                entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Hekate::RebootToPayload(config); });
+                entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Payload::RebootToPayload(config); });
                 list->addItem(entry);
             }
         }
@@ -83,7 +83,7 @@ class PancakeGui : public tsl::Gui {
 
     virtual bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState joyStickPosLeft, HidAnalogStickState joyStickPosRight) {
         if (keysDown & HidNpadButton_Minus)
-            Hekate::RebootDefault();
+            Payload::RebootDefault();
 
         return false;
     }

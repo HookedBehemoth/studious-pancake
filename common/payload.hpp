@@ -20,7 +20,7 @@
 #include <vector>
 #include <switch.h>
 
-namespace Hekate {
+namespace Payload {
 
     enum BootCfg {
         BootCfg_ForceAutoBoot = 1 << 0,

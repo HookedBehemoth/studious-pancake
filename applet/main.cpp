@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <hekate.hpp>
+#include <payload.hpp>
 #include <util.hpp>
 
 #include <cstdio>
@@ -33,27 +33,27 @@ namespace {
     };
 
     void BootConfigCallback(void *user) {
-        auto config = reinterpret_cast<Hekate::BootConfig *>(user);
+        auto config = reinterpret_cast<Payload::BootConfig *>(user);
 
-        Hekate::RebootToConfig(*config, false);
+        Payload::RebootToConfig(*config, false);
     }
 
     void IniConfigCallback(void *user) {
-        auto config = reinterpret_cast<Hekate::BootConfig *>(user);
+        auto config = reinterpret_cast<Payload::BootConfig *>(user);
 
-        Hekate::RebootToConfig(*config, true);
+        Payload::RebootToConfig(*config, true);
     }
 
     void UmsCallback(void *user) {
-        Hekate::RebootToUMS(Hekate::UmsTarget_Sd);
+        Payload::RebootToUMS(Payload::UmsTarget_Sd);
 
         (void)user;
     }
 
     void PayloadCallback(void *user) {
-        auto config = reinterpret_cast<Hekate::PayloadConfig *>(user);
+        auto config = reinterpret_cast<Payload::PayloadConfig *>(user);
 
-        Hekate::RebootToPayload(*config);
+        Payload::RebootToPayload(*config);
     }
 }
 
@@ -69,13 +69,13 @@ int main(int argc, char **argv) {
     std::vector<TuiItem> items;
 
     /* Load available boot configs */
-    auto boot_config_list = Hekate::LoadBootConfigList();
+    auto boot_config_list = Payload::LoadBootConfigList();
 
     /* Load available ini configs */
-    auto ini_config_list = Hekate::LoadIniConfigList();
+    auto ini_config_list = Payload::LoadIniConfigList();
 
     /* Load available payloads */
-    auto payload_config_list = Hekate::LoadPayloadList();
+    auto payload_config_list = Payload::LoadPayloadList();
 
     /* Build menu item list */
     if (util::IsErista()) {
@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
             }
 
             if ((kDown & HidNpadButton_Minus)) {
-                Hekate::RebootDefault();
+                Payload::RebootDefault();
             }
 
             if ((kDown & HidNpadButton_AnyDown) && (index + 1) < items.size()) {
