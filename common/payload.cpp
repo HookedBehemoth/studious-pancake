@@ -82,17 +82,13 @@ namespace Payload {
             /* Close file. */
             fclose(file);
 
-            /* Verify hekate payload loaded successfully. */
-            if(hekate) {
-                if (ret == 0 || *(u32 *)(g_reboot_payload + Payload::MagicOffset) != Payload::Magic)
-                    return false;
-            }
+            /* Check if hekate payload loaded successfully. */
+            if(hekate && *(u32 *)(g_reboot_payload + Payload::MagicOffset) != Payload::Magic)
+                return false;
 
             /* Verify payload loaded successfully. */
-            else{
-                if(ret == 0)
-                    return false;
-            }
+            if(ret == 0)
+                return false;
 
             return true;
         }
