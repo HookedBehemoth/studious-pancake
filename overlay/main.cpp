@@ -14,41 +14,43 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #define TESLA_INIT_IMPL
-#include <hekate.hpp>
+#include <payload.hpp>
 #include <util.hpp>
 
 #include <tesla.hpp>
 
 namespace {
 
-    constexpr const char AppTitle[] = "Studius Pancake";
-    constexpr const char AppVersion[] = "0.2.1";
+    constexpr const char AppTitle[] = APP_TITLE;
+    constexpr const char AppVersion[] = APP_VERSION;
 
 }
 
 class PancakeGui : public tsl::Gui {
   private:
-    Hekate::BootConfigList const boot_config_list;
-    Hekate::BootConfigList const ini_config_list;
+    Payload::HekateConfigList const boot_config_list;
+    Payload::HekateConfigList const ini_config_list;
+    Payload::PayloadConfigList const payload_config_list;
 
   public:
     PancakeGui()
-        : boot_config_list(Hekate::LoadBootConfigList()),
-          ini_config_list(Hekate::LoadIniConfigList()) {
+        : boot_config_list(Payload::LoadHekateConfigList()),
+          ini_config_list(Payload::LoadIniConfigList()),
+          payload_config_list(Payload::LoadPayloadList()) {
     }
 
     virtual tsl::elm::Element *createUI() override {
-        auto frame = new tsl::elm::OverlayFrame(AppTitle, AppVersion);
+        auto const frame = new tsl::elm::OverlayFrame(AppTitle, AppVersion);
 
-        auto list = new tsl::elm::List();
+        auto const list = new tsl::elm::List();
 
         /* Append boot config entries. */
         if (!boot_config_list.empty()) {
             list->addItem(new tsl::elm::CategoryHeader("Boot configs"));
 
-            for (auto &config : boot_config_list) {
-                auto entry = new tsl::elm::ListItem(config.name);
-                entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Hekate::RebootToConfig(config, false); });
+            for (auto const &config : boot_config_list) {
+                auto const entry = new tsl::elm::ListItem(config.name);
+                entry->setClickListener([&](u64 const keys) -> bool { return (keys & HidNpadButton_A) && Payload::RebootToHekateConfig(config, false); });
                 list->addItem(entry);
             }
         }
@@ -57,9 +59,9 @@ class PancakeGui : public tsl::Gui {
         if (!ini_config_list.empty()) {
             list->addItem(new tsl::elm::CategoryHeader("Ini configs"));
 
-            for (auto &config : ini_config_list) {
-                auto entry = new tsl::elm::ListItem(config.name);
-                entry->setClickListener([&](u64 keys) -> bool { return (keys & HidNpadButton_A) && Hekate::RebootToConfig(config, true); });
+            for (auto const &config : ini_config_list) {
+                auto const entry = new tsl::elm::ListItem(config.name);
+                entry->setClickListener([&](u64 const keys) -> bool { return (keys & HidNpadButton_A) && Payload::RebootToHekateConfig(config, true); });
                 list->addItem(entry);
             }
         }
@@ -67,29 +69,45 @@ class PancakeGui : public tsl::Gui {
         /* Miscellaneous. */
         list->addItem(new tsl::elm::CategoryHeader("Miscellaneous"));
 
-        auto ums = new tsl::elm::ListItem("Reboot to UMS");
-        ums->setClickListener([](u64 keys) -> bool { return (keys & HidNpadButton_A) && Hekate::RebootToUMS(Hekate::UmsTarget_Sd); });
+        auto const ums = new tsl::elm::ListItem("Reboot to UMS");
+        ums->setClickListener([](u64 const keys) -> bool { return (keys & HidNpadButton_A) && Payload::RebootToHekateUMS(Payload::UmsTarget_Sd); });
         list->addItem(ums);
+
+        /* Payloads */
+        if (!payload_config_list.empty()) {
+            list->addItem(new tsl::elm::CategoryHeader("Payloads"));
+
+            for (auto const &config : payload_config_list) {
+                auto const entry = new tsl::elm::ListItem(config.name);
+                entry->setClickListener([&](u64 const keys) -> bool { return (keys & HidNpadButton_A) && Payload::RebootToPayload(config); });
+                list->addItem(entry);
+            }
+        }
 
         frame->setContent(list);
         return frame;
     }
 
-    virtual bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState joyStickPosLeft, HidAnalogStickState joyStickPosRight) {
+    virtual bool handleInput(u64 const keysDown, u64 const keysHeld, const HidTouchState &touchPos, HidAnalogStickState const joyStickPosLeft, HidAnalogStickState const joyStickPosRight) {
         if (keysDown & HidNpadButton_Minus)
-            Hekate::RebootDefault();
+            Payload::RebootToHekate();
+
+        (void)keysHeld;
+        (void)touchPos;
+        (void)joyStickPosLeft;
+        (void)joyStickPosRight;
 
         return false;
     }
 };
 
-class MarikoMenu : public tsl::Gui {
+class MarikoMenu final : public tsl::Gui {
   public:
     virtual tsl::elm::Element *createUI() override {
-        auto frame = new tsl::elm::OverlayFrame(AppTitle, AppVersion);
+        auto const frame = new tsl::elm::OverlayFrame(AppTitle, AppVersion);
 
         /* Display incompatibility error */
-        auto drawer = new tsl::elm::CustomDrawer([](tsl::gfx::Renderer* r, s32 x, s32 y, s32 w, s32 h) {
+        auto const drawer = new tsl::elm::CustomDrawer([](tsl::gfx::Renderer* const r, s32 const x, s32 const y, s32 const w, s32 const h) {
             r->drawString("\uE150", false, x + (w / 2) - (90 / 2), 300, 90, 0xffff);
             r->drawString("Mariko consoles unsupported", false, x, 380, 25, 0xffff);
         });
@@ -99,7 +117,7 @@ class MarikoMenu : public tsl::Gui {
     }
 };
 
-class PancakeOverlay : public tsl::Overlay {
+class PancakeOverlay final : public tsl::Overlay {
   public:
     virtual void initServices() override {
         fsdevMountSdmc();

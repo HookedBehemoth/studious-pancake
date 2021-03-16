@@ -38,6 +38,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #   NACP building is skipped as well.
 #---------------------------------------------------------------------------------
 APP_TITLE	:=	Studious Pancake
+APP_AUTHOR	:=	HookedBehemoth
 APP_VERSION :=	0.2.1
 
 TARGET		:=	overlay/$(notdir $(CURDIR))
@@ -53,7 +54,9 @@ NO_ICON		:=  1
 ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
 CFLAGS	:=	-g -Wall -Werror -O2 -ffunction-sections \
-			$(ARCH) $(DEFINES)
+			$(ARCH) $(DEFINES) \
+			-DAPP_VERSION="\"$(APP_VERSION)\"" \
+			-DAPP_TITLE="\"$(APP_TITLE)\""
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__
 

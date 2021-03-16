@@ -19,7 +19,7 @@
 #include <string>
 #include <switch.h>
 
-namespace Hekate {
+namespace Payload {
 
     enum BootCfg {
         BootCfg_ForceAutoBoot = 1 << 0,
@@ -70,19 +70,27 @@ namespace Hekate {
 
     constexpr inline std::size_t const BootStorageOffset = 0x94;
     constexpr inline std::size_t const MagicOffset       = BootStorageOffset + sizeof(BootStorage);
-    constexpr inline std::uint32_t Magic                 = 0x43544349; /* ICTC */
+    constexpr inline std::uint32_t const Magic           = 0x43544349; /* ICTC */
 
-    struct BootConfig {
-        std::string name;
-        std::size_t index;
+    struct HekateConfig {
+        std::string const name;
+        std::size_t const index;
     };
 
-    using BootConfigList = std::list<BootConfig>;
+    struct PayloadConfig {
+        std::string const name;
+        std::string const path;
+    };
 
-    BootConfigList LoadBootConfigList();
-    BootConfigList LoadIniConfigList();
-    bool RebootDefault();
-    bool RebootToConfig(BootConfig const &config, bool autoboot_list);
-    bool RebootToUMS(UmsTarget const target);
+    using HekateConfigList = std::list<HekateConfig>;
+    using PayloadConfigList = std::list<PayloadConfig>;
+
+    HekateConfigList LoadHekateConfigList();
+    HekateConfigList LoadIniConfigList();
+    PayloadConfigList LoadPayloadList();
+    bool RebootToHekate();
+    bool RebootToHekateConfig(HekateConfig const &config, bool const autoboot_list);
+    bool RebootToHekateUMS(UmsTarget const target);
+    bool RebootToPayload(PayloadConfig const &config);
 
 }
