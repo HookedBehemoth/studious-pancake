@@ -18,19 +18,17 @@
 #include "ini.h"
 #include "reboot_to_payload.h"
 
-#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <dirent.h>
 #include <span>
-#include <vector>
 
 namespace Payload {
 
     namespace {
 
-        int BootConfigHandler(void *user, char const *section, char const *name, char const *value) {
-            auto list = reinterpret_cast<BootConfigList *>(user);
+        int HekateConfigHandler(void *user, char const *section, char const *name, char const *value) {
+            auto const list = reinterpret_cast<HekateConfigList *>(user);
 
             /* ignore pre-config and global config entries. */
             if (section[0] == '\0' || std::strcmp(section, "config") == 0) {
@@ -38,12 +36,12 @@ namespace Payload {
             }
 
             /* Find existing entry. */
-            auto it = std::find_if(list->begin(), list->end(), [section](BootConfig &cfg) {
+            auto it = std::find_if(list->begin(), list->end(), [section](HekateConfig &cfg) {
                 return cfg.name == section;
             });
 
             /* Create config entry if not existant. */
-            BootConfig &config = (it != list->end()) ? *it : list->emplace_back(section, list->size() + 1);
+            HekateConfig &config = (it != list->end()) ? *it : list->emplace_back(section, list->size() + 1);
 
             /* TODO: parse more information and display that. */
             (void)config;
@@ -54,7 +52,7 @@ namespace Payload {
             return 1;
         }
 
-        constexpr char const *const PayloadPaths[] = {
+        constexpr char const *const HekatePaths[] = {
             "sdmc:/atmosphere/reboot_payload.bin",
             "sdmc:/bootloader/update.bin",
             "sdmc:/bootloader/payloads/hekate.bin",
@@ -72,22 +70,22 @@ namespace Payload {
             std::memset(g_reboot_payload, 0xFF, sizeof(g_reboot_payload));
 
             /* Open payload. */
-            auto file = fopen(path, "r");
+            auto const file = fopen(path, "r");
             if (file == nullptr)
                 return false;
 
             /* Read payload to buffer. */
-            std::size_t ret = fread(g_reboot_payload, 1, sizeof(g_reboot_payload), file);
+            auto const ret = fread(g_reboot_payload, 1, sizeof(g_reboot_payload), file);
 
             /* Close file. */
             fclose(file);
 
             /* Verify payload loaded successfully. */
-            if(ret == 0)
+            if (ret == 0)
                 return false;
 
             /* Check if payload has hekate magic. */
-            if(hekate && *(u32 *)(g_reboot_payload + Payload::MagicOffset) != Payload::Magic)
+            if (hekate && *(u32 *)(g_reboot_payload + Payload::MagicOffset) != Payload::Magic)
                 return false;
 
             return true;
@@ -95,9 +93,9 @@ namespace Payload {
 
         bool LoadHekatePayload() {
             /* Iterate through the payload dirs */
-            for (auto path : PayloadPaths) {
+            for (auto const path : HekatePaths) {
                 /* Try loading the payload */
-                if(LoadPayload(path, true))
+                if (LoadPayload(path, true))
                     return true;
             }
 
@@ -106,20 +104,20 @@ namespace Payload {
 
     }
 
-    BootConfigList LoadBootConfigList() {
-        BootConfigList configs;
-        ini_parse("sdmc:/bootloader/hekate_ipl.ini", BootConfigHandler, &configs);
+    HekateConfigList LoadHekateConfigList() {
+        HekateConfigList configs;
+        ini_parse("sdmc:/bootloader/hekate_ipl.ini", HekateConfigHandler, &configs);
         return configs;
     }
 
-    BootConfigList LoadIniConfigList() {
-        BootConfigList configs;
+    HekateConfigList LoadIniConfigList() {
+        HekateConfigList configs;
 
         if (chdir("sdmc:/bootloader/ini") != 0)
             return configs;
 
         /* Open ini folder */
-        auto dirp = opendir(".");
+        auto const dirp = opendir(".");
         if (dirp == nullptr)
             return configs;
 
@@ -152,8 +150,8 @@ namespace Payload {
         }
 
         /* parse config */
-        for (auto &entry : std::span(dir_entries, count))
-            ini_parse(entry, BootConfigHandler, &configs);
+        for (auto const &entry : std::span(dir_entries, count))
+            ini_parse(entry, HekateConfigHandler, &configs);
 
         closedir(dirp);
 
@@ -162,8 +160,8 @@ namespace Payload {
         return configs;
     }
 
-    PayloadConfigVector LoadPayloadList() {
-        PayloadConfigVector res;
+    PayloadConfigList LoadPayloadList() {
+        PayloadConfigList res;
 
         /* Iterate through all the payload folders */
         for (const auto& path : PayloadDirs) {
@@ -172,34 +170,36 @@ namespace Payload {
                 continue;
 
             /* Open `path` folder */
-            auto dirp = opendir(".");
+            auto const dirp = opendir(".");
             if (dirp == nullptr)
                 continue;
 
             /* Get entries */
-            while (auto dent = readdir(dirp)) {
+            while (auto const dent = readdir(dirp)) {
                 if (dent->d_type != DT_REG)
                     continue;
 
                 /* Get payloads */
-                std::string name(dent->d_name);
-                if(name.substr(name.size() - 4) == ".bin")
-                    res.push_back({name.substr(0, name.size() - 4), (path + name)});
+                std::string const name(dent->d_name);
+                if (name.substr(name.size() - 4) == ".bin")
+                    res.emplace_back(name.substr(0, name.size() - 4), (path + name));
             }
 
             closedir(dirp);
         }
+
         chdir("sdmc:/");
+
         return res;
     }
 
-    bool RebootDefault() {
+    bool RebootToHekate() {
         /* Load payload. */
         if (!LoadHekatePayload())
             return false;
 
         /* Get boot storage pointer. */
-        auto storage = reinterpret_cast<BootStorage *>(g_reboot_payload + BootStorageOffset);
+        auto const storage = reinterpret_cast<BootStorage *>(g_reboot_payload + BootStorageOffset);
 
         /* Clear boot storage. */
         std::memset(storage, 0, sizeof(BootStorage));
@@ -210,13 +210,13 @@ namespace Payload {
         return true;
     }
 
-    bool RebootToConfig(BootConfig const &config, bool autoboot_list) {
+    bool RebootToHekateConfig(HekateConfig const &config, bool const autoboot_list) {
         /* Load payload. */
         if (!LoadHekatePayload())
             return false;
 
         /* Get boot storage pointer. */
-        auto storage = reinterpret_cast<BootStorage *>(g_reboot_payload + BootStorageOffset);
+        auto const storage = reinterpret_cast<BootStorage *>(g_reboot_payload + BootStorageOffset);
 
         /* Clear boot storage. */
         std::memset(storage, 0, sizeof(BootStorage));
@@ -232,13 +232,13 @@ namespace Payload {
         return true;
     }
 
-    bool RebootToUMS(UmsTarget const target) {
+    bool RebootToHekateUMS(UmsTarget const target) {
         /* Load payload. */
         if (!LoadHekatePayload())
             return false;
 
         /* Get boot storage pointer. */
-        auto storage = reinterpret_cast<BootStorage *>(g_reboot_payload + BootStorageOffset);
+        auto const storage = reinterpret_cast<BootStorage *>(g_reboot_payload + BootStorageOffset);
 
         /* Clear boot storage. */
         std::memset(storage, 0, sizeof(BootStorage));

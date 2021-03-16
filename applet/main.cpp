@@ -23,35 +23,35 @@
 
 namespace {
 
-    typedef void (*TuiCallback)(void *user);
+    typedef void (*TuiCallback)(void const *const user);
 
     struct TuiItem {
-        std::string text;
-        TuiCallback cb;
-        void *user;
-        bool selectable;
+        std::string const text;
+        TuiCallback const cb;
+        void const *const user;
+        bool const selectable;
     };
 
-    void BootConfigCallback(void *user) {
-        auto config = reinterpret_cast<Payload::BootConfig *>(user);
+    void BootConfigCallback(void const *const user) {
+        auto const config = reinterpret_cast<Payload::HekateConfig const *>(user);
 
-        Payload::RebootToConfig(*config, false);
+        Payload::RebootToHekateConfig(*config, false);
     }
 
-    void IniConfigCallback(void *user) {
-        auto config = reinterpret_cast<Payload::BootConfig *>(user);
+    void IniConfigCallback(void const *const user) {
+        auto const config = reinterpret_cast<Payload::HekateConfig const *>(user);
 
-        Payload::RebootToConfig(*config, true);
+        Payload::RebootToHekateConfig(*config, true);
     }
 
-    void UmsCallback(void *user) {
-        Payload::RebootToUMS(Payload::UmsTarget_Sd);
+    void UmsCallback(void const *const user) {
+        Payload::RebootToHekateUMS(Payload::UmsTarget_Sd);
 
         (void)user;
     }
 
-    void PayloadCallback(void *user) {
-        auto config = reinterpret_cast<Payload::PayloadConfig *>(user);
+    void PayloadCallback(void const *const user) {
+        auto const config = reinterpret_cast<Payload::PayloadConfig const *>(user);
 
         Payload::RebootToPayload(*config);
     }
@@ -65,17 +65,17 @@ extern "C" void userAppExit(void) {
     splExit();
 }
 
-int main(int argc, char **argv) {
+int main(int const argc, char const *argv[]) {
     std::vector<TuiItem> items;
 
     /* Load available boot configs */
-    auto boot_config_list = Payload::LoadBootConfigList();
+    auto const boot_config_list = Payload::LoadHekateConfigList();
 
     /* Load available ini configs */
-    auto ini_config_list = Payload::LoadIniConfigList();
+    auto const ini_config_list = Payload::LoadIniConfigList();
 
     /* Load available payloads */
-    auto payload_config_list = Payload::LoadPayloadList();
+    auto const payload_config_list = Payload::LoadPayloadList();
 
     /* Build menu item list */
     if (util::IsErista()) {
@@ -85,13 +85,13 @@ int main(int argc, char **argv) {
 
         if (!boot_config_list.empty()) {
             items.emplace_back("Boot Configs", nullptr, nullptr, false);
-            for (auto &entry : boot_config_list)
+            for (auto const &entry : boot_config_list)
                 items.emplace_back(entry.name, BootConfigCallback, &entry, true);
         }
 
         if (!ini_config_list.empty()) {
             items.emplace_back("Ini Configs", nullptr, nullptr, false);
-            for (auto &entry : ini_config_list)
+            for (auto const &entry : ini_config_list)
                 items.emplace_back(entry.name, IniConfigCallback, &entry, true);
         }
 
@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
 
         if (!payload_config_list.empty()) {
             items.emplace_back("Payloads", nullptr, nullptr, false);
-            for (auto &entry : payload_config_list)
+            for (auto const &entry : payload_config_list)
                 items.emplace_back(entry.name, PayloadCallback, &entry, true);
         }
 
@@ -110,14 +110,14 @@ int main(int argc, char **argv) {
 
     std::size_t index = 0;
 
-    for (auto &item : items) {
+    for (auto const &item : items) {
         if (item.selectable)
             break;
 
         index++;
     }
 
-    PrintConsole *console = consoleInit(nullptr);
+    PrintConsole *const console = consoleInit(nullptr);
 
     /* Configure input */
     padConfigureInput(8, HidNpadStyleSet_NpadStandard);
@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
             /* Update padstate */
             padUpdate(&pad);
 
-            u64 kDown = padGetButtonsDown(&pad);
+            u64 const kDown = padGetButtonsDown(&pad);
 
             if ((kDown & (HidNpadButton_Plus | HidNpadButton_B | HidNpadButton_L)))
                 break;
@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
             }
 
             if ((kDown & HidNpadButton_Minus)) {
-                Payload::RebootDefault();
+                Payload::RebootToHekate();
             }
 
             if ((kDown & HidNpadButton_AnyDown) && (index + 1) < items.size()) {
@@ -172,16 +172,16 @@ int main(int argc, char **argv) {
 
         consoleClear();
 
-        printf("Studious Pancake\n----------------\n");
+        std::printf("Studious Pancake\n----------------\n");
 
         for (std::size_t i = 0; i < items.size(); i++) {
-            auto &item    = items[i];
-            bool selected = (i == index);
+            auto const &item    = items[i];
+            bool const selected = (i == index);
 
             if (!item.selectable)
                 console->flags |= CONSOLE_COLOR_FAINT;
 
-            printf("%c %s\n", selected ? '>' : ' ', item.text.c_str());
+            std::printf("%c %s\n", selected ? '>' : ' ', item.text.c_str());
 
             if (!item.selectable)
                 console->flags &= ~CONSOLE_COLOR_FAINT;
