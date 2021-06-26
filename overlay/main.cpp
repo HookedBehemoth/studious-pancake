@@ -122,9 +122,13 @@ class PancakeOverlay final : public tsl::Overlay {
     virtual void initServices() override {
         fsdevMountSdmc();
         splInitialize();
+        spsmInitialize();
+        amsBpcInitialize();
     }
 
     virtual void exitServices() override {
+        amsBpcExit();
+        spsmExit();
         splExit();
         fsdevUnmountAll();
     }

@@ -14,18 +14,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include <switch.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define IRAM_PAYLOAD_MAX_SIZE 0x2F000
+Result amsBpcInitialize();
+void   amsBpcExit();
+Service *amsBpcGetServiceSession(void);
 
-extern u8 g_reboot_payload[IRAM_PAYLOAD_MAX_SIZE];
-
-void reboot_to_payload(void);
+Result amsBpcSetRebootPayload(const void *src, size_t src_size);
 
 #ifdef __cplusplus
 }
