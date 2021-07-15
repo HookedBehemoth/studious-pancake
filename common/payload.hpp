@@ -19,6 +19,8 @@
 #include <string>
 #include <switch.h>
 
+#include "ams_bpc.h"
+
 namespace Payload {
 
     enum BootCfg {

@@ -16,12 +16,19 @@
 #include "payload.hpp"
 
 #include "ini.h"
-#include "reboot_to_payload.h"
 
 #include <cstdio>
 #include <cstring>
 #include <dirent.h>
 #include <span>
+
+#define IRAM_PAYLOAD_MAX_SIZE 0x24000
+static u8 g_reboot_payload[IRAM_PAYLOAD_MAX_SIZE];
+
+static void reboot_to_payload(void) {
+    if (R_SUCCEEDED(amsBpcSetRebootPayload(g_reboot_payload, IRAM_PAYLOAD_MAX_SIZE)))
+        spsmShutdown(true);
+}
 
 namespace Payload {
 

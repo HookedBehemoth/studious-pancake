@@ -59,13 +59,30 @@ namespace {
 
 extern "C" void userAppInit(void) {
     splInitialize();
+    spsmInitialize();
 }
 
 extern "C" void userAppExit(void) {
+    amsBpcExit();
+    spsmExit();
     splExit();
 }
 
 int main(int const argc, char const *argv[]) {
+    /* Initialize console output */
+    PrintConsole *const console = consoleInit(nullptr);
+
+    /* Configure input */
+    padConfigureInput(8, HidNpadStyleSet_NpadStandard);
+
+    /* Initialize pad */
+    PadState pad;
+    padInitializeAny(&pad);
+
+    /* Initialize ams:bpc service */
+    smExit(); //Required to connect to ams:bpc
+    amsBpcInitialize();
+
     std::vector<TuiItem> items;
 
     /* Load available boot configs */
@@ -116,15 +133,6 @@ int main(int const argc, char const *argv[]) {
 
         index++;
     }
-
-    PrintConsole *const console = consoleInit(nullptr);
-
-    /* Configure input */
-    padConfigureInput(8, HidNpadStyleSet_NpadStandard);
-
-    /* Initialize pad */
-    PadState pad;
-    padInitializeAny(&pad);
 
     while (appletMainLoop()) {
         {
