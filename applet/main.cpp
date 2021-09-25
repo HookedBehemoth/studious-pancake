@@ -58,11 +58,13 @@ namespace {
 }
 
 extern "C" void userAppInit(void) {
+    spsmInitialize();
     splInitialize();
 }
 
 extern "C" void userAppExit(void) {
     splExit();
+    spsmExit();
 }
 
 int main(int const argc, char const *argv[]) {
@@ -125,6 +127,9 @@ int main(int const argc, char const *argv[]) {
     /* Initialize pad */
     PadState pad;
     padInitializeAny(&pad);
+
+    /* Deinit sm to free up our only service slot */
+    smExit();
 
     while (appletMainLoop()) {
         {

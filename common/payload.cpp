@@ -15,8 +15,9 @@
  */
 #include "payload.hpp"
 
-#include "ini.h"
 #include "reboot_to_payload.h"
+#include "ams_bpc.h"
+#include "ini.h"
 
 #include <cstdio>
 #include <cstring>
@@ -27,10 +28,26 @@ namespace Payload {
 
     namespace {
 
+        void RebootToPayload() {
+            /* Try reboot with safe ams bpc api. */
+            Result rc = amsBpcInitialize();
+            if (R_SUCCEEDED(rc)) {
+                rc = amsBpcSetRebootPayload(g_reboot_payload, IRAM_PAYLOAD_MAX_SIZE);
+                if (R_SUCCEEDED(rc)) {
+                    spsmShutdown(true);
+                }
+                amsBpcExit();
+            }
+            
+            /* Fallback to old smc reboot to payload. */
+            if (R_FAILED(rc))
+                smc_reboot_to_payload();
+        }
+
         int HekateConfigHandler(void *user, char const *section, char const *name, char const *value) {
             auto const list = reinterpret_cast<HekateConfigList *>(user);
 
-            /* ignore pre-config and global config entries. */
+            /* Ignore pre-config and global config entries. */
             if (section[0] == '\0' || std::strcmp(section, "config") == 0) {
                 return 1;
             }
@@ -193,7 +210,8 @@ namespace Payload {
         return res;
     }
 
-    bool RebootToHekate() {
+    template<typename ConfigureFunction>
+    bool Reboot(ConfigureFunction func) {
         /* Load payload. */
         if (!LoadHekatePayload())
             return false;
@@ -204,55 +222,38 @@ namespace Payload {
         /* Clear boot storage. */
         std::memset(storage, 0, sizeof(BootStorage));
 
+        /* Configure boot storage */
+        func(storage);
+
         /* Reboot */
-        reboot_to_payload();
+        RebootToPayload();
 
         return true;
+    }
+
+    bool RebootToHekate() {
+        return Reboot([&] (BootStorage *storage) {
+            /* No-Op */
+        });
     }
 
     bool RebootToHekateConfig(HekateConfig const &config, bool const autoboot_list) {
-        /* Load payload. */
-        if (!LoadHekatePayload())
-            return false;
-
-        /* Get boot storage pointer. */
-        auto const storage = reinterpret_cast<BootStorage *>(g_reboot_payload + BootStorageOffset);
-
-        /* Clear boot storage. */
-        std::memset(storage, 0, sizeof(BootStorage));
-
-        /* Force autoboot and set boot id. */
-        storage->boot_cfg      = BootCfg_ForceAutoBoot;
-        storage->autoboot      = config.index;
-        storage->autoboot_list = autoboot_list;
-
-        /* Reboot */
-        reboot_to_payload();
-
-        return true;
+        return Reboot([&] (BootStorage *storage) {
+            /* Force autoboot and set boot id. */
+            storage->boot_cfg      = BootCfg_ForceAutoBoot;
+            storage->autoboot      = config.index;
+            storage->autoboot_list = autoboot_list;
+        });
     }
 
     bool RebootToHekateUMS(UmsTarget const target) {
-        /* Load payload. */
-        if (!LoadHekatePayload())
-            return false;
-
-        /* Get boot storage pointer. */
-        auto const storage = reinterpret_cast<BootStorage *>(g_reboot_payload + BootStorageOffset);
-
-        /* Clear boot storage. */
-        std::memset(storage, 0, sizeof(BootStorage));
-
-        /* Force boot to menu, target UMS and select target. */
-        storage->boot_cfg  = BootCfg_ForceAutoBoot;
-        storage->extra_cfg = ExtraCfg_NyxUms;
-        storage->autoboot  = 0;
-        storage->ums       = target;
-
-        /* Reboot */
-        reboot_to_payload();
-
-        return true;
+        return Reboot([&] (BootStorage *storage) {
+            /* Force boot to menu, target UMS and select target. */
+            storage->boot_cfg  = BootCfg_ForceAutoBoot;
+            storage->extra_cfg = ExtraCfg_NyxUms;
+            storage->autoboot  = 0;
+            storage->ums       = target;
+        });
     }
 
     bool RebootToPayload(PayloadConfig const &config) {
@@ -261,7 +262,7 @@ namespace Payload {
             return false;
 
         /* Reboot */
-        reboot_to_payload();
+        RebootToPayload();
 
         return true;
     }

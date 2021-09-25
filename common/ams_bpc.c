@@ -13,20 +13,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
-
 #include <switch.h>
+#include "ams_bpc.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+static Service g_amsBpcSrv;
 
-#define IRAM_PAYLOAD_MAX_SIZE 0x24000
-
-extern u8 g_reboot_payload[IRAM_PAYLOAD_MAX_SIZE];
-
-void smc_reboot_to_payload(void);
-
-#ifdef __cplusplus
+Result amsBpcInitialize(void) {
+    Handle h;
+    Result rc = svcConnectToNamedPort(&h, "bpc:ams"); /* TODO: ams:bpc */
+    if (R_SUCCEEDED(rc)) serviceCreate(&g_amsBpcSrv, h);
+    return rc;
 }
-#endif
+
+void amsBpcExit(void) {
+    serviceClose(&g_amsBpcSrv);
+}
+
+Service *amsBpcGetServiceSession(void) {
+    return &g_amsBpcSrv;
+}
+
+Result amsBpcSetRebootPayload(const void *src, size_t src_size) {
+    return serviceDispatch(&g_amsBpcSrv, 65001,
+        .buffer_attrs = { SfBufferAttr_In | SfBufferAttr_HipcMapAlias },
+        .buffers = { { src, src_size } },
+    );
+}
