@@ -126,6 +126,8 @@ int main(int const argc, char const *argv[]) {
     /* Deinit sm to free up our only service slot */
     smExit();
 
+    bool repaint = true;
+
     while (appletMainLoop()) {
         {
             /* Update padstate */
@@ -142,11 +144,12 @@ int main(int const argc, char const *argv[]) {
                 if (item.selectable && item.cb)
                     item.cb(item.user);
 
-                break;
+                repaint = true;
             }
 
             if ((kDown & HidNpadButton_Minus)) {
                 Payload::RebootToHekate();
+                repaint = true;
             }
 
             if ((kDown & HidNpadButton_AnyDown) && (index + 1) < items.size()) {
@@ -157,6 +160,7 @@ int main(int const argc, char const *argv[]) {
                     index = i + 1;
                     break;
                 }
+                repaint = true;
             }
 
             if ((kDown & HidNpadButton_AnyUp) && index > 0) {
@@ -167,27 +171,30 @@ int main(int const argc, char const *argv[]) {
                     index = i - 1;
                     break;
                 }
+                repaint = true;
             }
         }
 
-        consoleClear();
+        if (repaint) {
+            consoleClear();
 
-        std::printf("Studious Pancake\n----------------\n");
+            std::printf("Studious Pancake\n----------------\n");
 
-        for (std::size_t i = 0; i < items.size(); i++) {
-            auto const &item    = items[i];
-            bool const selected = (i == index);
+            for (std::size_t i = 0; i < items.size(); i++) {
+                auto const &item    = items[i];
+                bool const selected = (i == index);
 
-            if (!item.selectable)
-                console->flags |= CONSOLE_COLOR_FAINT;
+                if (!item.selectable)
+                    console->flags |= CONSOLE_COLOR_FAINT;
 
-            std::printf("%c %s\n", selected ? '>' : ' ', item.text.c_str());
+                std::printf("%c %s\n", selected ? '>' : ' ', item.text.c_str());
 
-            if (!item.selectable)
-                console->flags &= ~CONSOLE_COLOR_FAINT;
+                if (!item.selectable)
+                    console->flags &= ~CONSOLE_COLOR_FAINT;
+            }
+
+            consoleUpdate(nullptr);
         }
-
-        consoleUpdate(nullptr);
     }
 
     consoleExit(nullptr);
