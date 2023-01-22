@@ -19,9 +19,11 @@
 #include "ams_bpc.h"
 #include "ini.h"
 
+#include <unistd.h>
 #include <cstdio>
 #include <cstring>
 #include <dirent.h>
+#include <algorithm>
 #include <span>
 
 namespace Payload {
