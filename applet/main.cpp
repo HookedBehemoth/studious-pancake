@@ -80,34 +80,29 @@ int main(int const argc, char const *argv[]) {
     auto const payload_config_list = Payload::LoadPayloadList();
 
     /* Build menu item list */
-    if (util::IsErista()) {
-        items.reserve(2 + boot_config_list.empty() ? 0 : 1 + boot_config_list.size()
-                        + ini_config_list.empty()  ? 0 : 1 + ini_config_list.size()
-                        + payload_config_list.empty()  ? 0 : 1 + payload_config_list.size());
+    items.reserve(2 + boot_config_list.empty() ? 0 : 1 + boot_config_list.size()
+                    + ini_config_list.empty()  ? 0 : 1 + ini_config_list.size()
+                    + payload_config_list.empty()  ? 0 : 1 + payload_config_list.size());
 
-        if (!boot_config_list.empty()) {
-            items.emplace_back("Boot Configs", nullptr, nullptr, false);
-            for (auto const &entry : boot_config_list)
-                items.emplace_back(entry.name, BootConfigCallback, &entry, true);
-        }
+    if (!boot_config_list.empty()) {
+        items.emplace_back("Boot Configs", nullptr, nullptr, false);
+        for (auto const &entry : boot_config_list)
+            items.emplace_back(entry.name, BootConfigCallback, &entry, true);
+    }
 
-        if (!ini_config_list.empty()) {
-            items.emplace_back("Ini Configs", nullptr, nullptr, false);
-            for (auto const &entry : ini_config_list)
-                items.emplace_back(entry.name, IniConfigCallback, &entry, true);
-        }
+    if (!ini_config_list.empty()) {
+        items.emplace_back("Ini Configs", nullptr, nullptr, false);
+        for (auto const &entry : ini_config_list)
+            items.emplace_back(entry.name, IniConfigCallback, &entry, true);
+    }
 
-        items.emplace_back("Miscellaneous", nullptr, nullptr, false);
-        items.emplace_back("Reboot to UMS", UmsCallback, nullptr, true);
+    items.emplace_back("Miscellaneous", nullptr, nullptr, false);
+    items.emplace_back("Reboot to UMS", UmsCallback, nullptr, true);
 
-        if (!payload_config_list.empty()) {
-            items.emplace_back("Payloads", nullptr, nullptr, false);
-            for (auto const &entry : payload_config_list)
-                items.emplace_back(entry.name, PayloadCallback, &entry, true);
-        }
-
-    } else {
-        items.emplace_back("Mariko consoles unsupported", nullptr, nullptr, true);
+    if (util::IsErista() && !payload_config_list.empty()) {
+        items.emplace_back("Payloads", nullptr, nullptr, false);
+        for (auto const &entry : payload_config_list)
+            items.emplace_back(entry.name, PayloadCallback, &entry, true);
     }
 
     std::size_t index = 0;

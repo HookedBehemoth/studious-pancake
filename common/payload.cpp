@@ -15,6 +15,8 @@
  */
 #include "payload.hpp"
 
+#include "util.hpp"
+#include "rtc_r2p.hpp"
 #include "reboot_to_payload.h"
 #include "ams_bpc.h"
 #include "ini.h"
@@ -234,39 +236,67 @@ namespace Payload {
     }
 
     bool RebootToHekate() {
-        return Reboot([&] (BootStorage *storage) {
-            /* No-Op */
-        });
+        if (util::IsErista()) {
+            return Reboot([&] (BootStorage *storage) {
+                /* No-Op */
+            });
+        } else {
+            Max77620Rtc::rtc_reboot_reason_t rr {.dec = {
+                .reason = Max77620Rtc::REBOOT_REASON_NOP,
+            }};
+            return Max77620Rtc::Reboot(&rr);
+        }
     }
 
     bool RebootToHekateConfig(HekateConfig const &config, bool const autoboot_list) {
-        return Reboot([&] (BootStorage *storage) {
-            /* Force autoboot and set boot id. */
-            storage->boot_cfg      = BootCfg_ForceAutoBoot;
-            storage->autoboot      = config.index;
-            storage->autoboot_list = autoboot_list;
-        });
+        if (util::IsErista()) {
+            return Reboot([&] (BootStorage *storage) {
+                /* Force autoboot and set boot id. */
+                storage->boot_cfg      = BootCfg_ForceAutoBoot;
+                storage->autoboot      = config.index;
+                storage->autoboot_list = autoboot_list;
+            });
+        } else {
+            Max77620Rtc::rtc_reboot_reason_t rr {.dec = {
+                .reason = Max77620Rtc::REBOOT_REASON_SELF,
+                .autoboot_idx = static_cast<u16>(config.index & 0xf),
+                .autoboot_list = autoboot_list,
+            }};
+            return Max77620Rtc::Reboot(&rr);
+        }
     }
 
     bool RebootToHekateUMS(UmsTarget const target) {
-        return Reboot([&] (BootStorage *storage) {
-            /* Force boot to menu, target UMS and select target. */
-            storage->boot_cfg  = BootCfg_ForceAutoBoot;
-            storage->extra_cfg = ExtraCfg_NyxUms;
-            storage->autoboot  = 0;
-            storage->ums       = target;
-        });
+        if (util::IsErista()) {
+            return Reboot([&] (BootStorage *storage) {
+                /* Force boot to menu, target UMS and select target. */
+                storage->boot_cfg  = BootCfg_ForceAutoBoot;
+                storage->extra_cfg = ExtraCfg_NyxUms;
+                storage->autoboot  = 0;
+                storage->ums       = target;
+            });
+        } else {
+            Max77620Rtc::rtc_reboot_reason_t rr {.dec = {
+                .reason = Max77620Rtc::REBOOT_REASON_UMS,
+                .ums_idx = target,
+            }};
+            return Max77620Rtc::Reboot(&rr);
+        }
     }
 
     bool RebootToPayload(PayloadConfig const &config) {
-        /* Load payload. */
-        if (!LoadPayload(config.path.c_str(), false))
+        if (util::IsErista()) {
+            /* Load payload. */
+            if (!LoadPayload(config.path.c_str(), false))
+                return false;
+
+            /* Reboot */
+            RebootToPayload();
+
+            return true;
+        } else {
             return false;
-
-        /* Reboot */
-        RebootToPayload();
-
-        return true;
+        }
     }
 
 }
