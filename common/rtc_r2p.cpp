@@ -128,7 +128,11 @@ namespace Max77620Rtc {
 			}
 
 			// Update RTC clock from RTC regs.
-			return i2c_send_byte(session, MAX77620_RTC_UPDATE0_REG, MAX77620_RTC_WRITE_UPDATE);
+			auto const ret = i2c_send_byte(session, MAX77620_RTC_UPDATE0_REG, MAX77620_RTC_WRITE_UPDATE);
+
+			svcSleepThread(16'000'000ul);
+
+			return ret;
 		}
 
 	}
