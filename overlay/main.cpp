@@ -101,22 +101,6 @@ class PancakeGui : public tsl::Gui {
     }
 };
 
-class MarikoMenu final : public tsl::Gui {
-  public:
-    virtual tsl::elm::Element *createUI() override {
-        auto const frame = new tsl::elm::OverlayFrame(AppTitle, AppVersion);
-
-        /* Display incompatibility error */
-        auto const drawer = new tsl::elm::CustomDrawer([](tsl::gfx::Renderer* const r, s32 const x, s32 const y, s32 const w, s32 const h) {
-            r->drawString("\uE150", false, x + (w / 2) - (90 / 2), 300, 90, 0xffff);
-            r->drawString("Mariko consoles unsupported", false, x, 380, 25, 0xffff);
-        });
-
-        frame->setContent(drawer);
-        return frame;
-    }
-};
-
 class PancakeOverlay final : public tsl::Overlay {
   public:
     virtual void initServices() override {
@@ -132,11 +116,7 @@ class PancakeOverlay final : public tsl::Overlay {
     }
 
     virtual std::unique_ptr<tsl::Gui> loadInitialGui() override {
-        if (util::IsErista()) {
-            return std::make_unique<PancakeGui>();
-        } else {
-            return std::make_unique<MarikoMenu>();
-        }
+        return std::make_unique<PancakeGui>();
     }
 };
 
