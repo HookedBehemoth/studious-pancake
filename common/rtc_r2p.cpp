@@ -172,6 +172,14 @@ namespace Max77620Rtc {
 
 		i2cExit();
 
-		return ret && R_SUCCEEDED(spsmShutdown(true));
+		rc = appletRequestToReboot();
+
+		if (R_FAILED(rc)) {
+			printf("applet: Failed to shudown: 2%03u-%04u\n", R_MODULE(rc), R_DESCRIPTION(rc));
+			rc = spsmShutdown(true);
+			if (R_FAILED(rc)) printf("spsm: Failed to shudown: 2%03u-%04u\n", R_MODULE(rc), R_DESCRIPTION(rc));
+		}
+
+		return ret && R_SUCCEEDED(rc);
 	}
 }
