@@ -113,7 +113,7 @@ namespace Max77620Rtc {
 			if (!i2c_send_byte(session, MAX77620_RTC_UPDATE0_REG, MAX77620_RTC_READ_UPDATE)) {
 				return false;
 			}
-			svcSleepThread(16'000ul);
+			svcSleepThread(16'000'000ul);
 
 			// Stop alarm for both ALARM1 and ALARM2. Horizon uses ALARM2.
 			for (int i = 0; i < (MAX77620_RTC_NR_TIME_REGS * 2); i++)
@@ -162,7 +162,7 @@ namespace Max77620Rtc {
 			// Update RTC clock from RTC regs.
 			!i2c_send_byte(session, MAX77620_RTC_UPDATE0_REG, MAX77620_RTC_WRITE_UPDATE);
 
-		svcSleepThread(16'000ul);
+		svcSleepThread(16'000'000ul);
 
 		i2csessionClose(&session);
 
