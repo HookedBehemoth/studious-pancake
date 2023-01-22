@@ -143,13 +143,10 @@ int main(int const argc, char const *argv[]) {
 
                 if (item.selectable && item.cb)
                     item.cb(item.user);
-
-                repaint = true;
             }
 
             if ((kDown & HidNpadButton_Minus)) {
                 Payload::RebootToHekate();
-                repaint = true;
             }
 
             if ((kDown & HidNpadButton_AnyDown) && (index + 1) < items.size()) {
