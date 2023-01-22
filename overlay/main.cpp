@@ -74,7 +74,7 @@ class PancakeGui : public tsl::Gui {
         list->addItem(ums);
 
         /* Payloads */
-        if (!payload_config_list.empty()) {
+        if (util::IsErista() && !payload_config_list.empty()) {
             list->addItem(new tsl::elm::CategoryHeader("Payloads"));
 
             for (auto const &config : payload_config_list) {
