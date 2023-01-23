@@ -103,7 +103,7 @@ namespace Max77620Rtc {
 
 			*out = rec.val;
 
-			return false;
+			return true;
 		}
 
 		bool max77620_rtc_stop_alarm(I2cSession &session) {
