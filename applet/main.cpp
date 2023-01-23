@@ -60,9 +60,11 @@ namespace {
 extern "C" void userAppInit(void) {
     spsmInitialize();
     splInitialize();
+    i2cInitialize();
 }
 
 extern "C" void userAppExit(void) {
+    i2cExit();
     splExit();
     spsmExit();
 }
