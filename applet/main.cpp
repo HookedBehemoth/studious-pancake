@@ -189,9 +189,9 @@ int main(int const argc, char const *argv[]) {
                 if (!item.selectable)
                     console->flags &= ~CONSOLE_COLOR_FAINT;
             }
-
-            consoleUpdate(nullptr);
         }
+
+        consoleUpdate(nullptr);
     }
 
     consoleExit(nullptr);
