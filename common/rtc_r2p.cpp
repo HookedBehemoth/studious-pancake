@@ -73,6 +73,8 @@ namespace Max77620Rtc {
 			} __attribute__((packed)) cmd;
 			static_assert(sizeof(cmd) == 2, "I2C command definition!");
 
+			cmd.reg = reg;
+			cmd.val = val;
 			Result rc = i2csessionSendAuto(&session, &cmd, sizeof(cmd), I2cTransactionOption_All);
 
 			if (R_FAILED(rc)) {
@@ -140,11 +142,6 @@ namespace Max77620Rtc {
 	bool Reboot(rtc_reboot_reason_t const* rr) {
 		Result rc = 0;
 
-		if (R_FAILED(rc = i2cInitialize())) {
-			printf("i2c: Failed to initialize i2c: 2%03u-%04u\n", R_MODULE(rc), R_DESCRIPTION(rc));
-			return false;
-		}
-
 		I2cSession session = {};
 		if (R_FAILED(rc = i2cOpenSession(&session, I2cDevice_Max77620Rtc))) {
 			printf("i2c: Failed to open i2c session: 2%03u-%04u\n", R_MODULE(rc), R_DESCRIPTION(rc));
@@ -170,16 +167,6 @@ namespace Max77620Rtc {
 
 		i2csessionClose(&session);
 
-		i2cExit();
-
-		rc = appletRequestToReboot();
-
-		if (R_FAILED(rc)) {
-			printf("applet: Failed to shudown: 2%03u-%04u\n", R_MODULE(rc), R_DESCRIPTION(rc));
-			rc = spsmShutdown(true);
-			if (R_FAILED(rc)) printf("spsm: Failed to shudown: 2%03u-%04u\n", R_MODULE(rc), R_DESCRIPTION(rc));
-		}
-
-		return ret && R_SUCCEEDED(rc);
+		return ret && R_SUCCEEDED(spsmShutdown(true));
 	}
 }
