@@ -153,18 +153,18 @@ namespace Max77620Rtc {
 		}
 
 		bool ret = 
-			!max77620_rtc_stop_alarm(session) &&
+			max77620_rtc_stop_alarm(session) &&
 
 			// Set reboot reason.
-			!i2c_send_byte(session, MAX77620_ALARM1_YEAR_REG, rr->enc.val1) &&
-			!i2c_send_byte(session, MAX77620_ALARM2_YEAR_REG, rr->enc.val2) &&
+			i2c_send_byte(session, MAX77620_ALARM1_YEAR_REG, rr->enc.val1) &&
+			i2c_send_byte(session, MAX77620_ALARM2_YEAR_REG, rr->enc.val2) &&
 
 			// Set reboot reason magic.
-			!i2c_send_byte(session, MAX77620_ALARM1_WEEKDAY_REG, RTC_REBOOT_REASON_MAGIC) &&
-			!i2c_send_byte(session, MAX77620_ALARM2_WEEKDAY_REG, RTC_REBOOT_REASON_MAGIC) &&
+			i2c_send_byte(session, MAX77620_ALARM1_WEEKDAY_REG, RTC_REBOOT_REASON_MAGIC) &&
+			i2c_send_byte(session, MAX77620_ALARM2_WEEKDAY_REG, RTC_REBOOT_REASON_MAGIC) &&
 
 			// Update RTC clock from RTC regs.
-			!i2c_send_byte(session, MAX77620_RTC_UPDATE0_REG, MAX77620_RTC_WRITE_UPDATE);
+			i2c_send_byte(session, MAX77620_RTC_UPDATE0_REG, MAX77620_RTC_WRITE_UPDATE);
 
 		svcSleepThread(16'000'000ul);
 
