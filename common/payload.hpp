@@ -18,6 +18,7 @@
 #include <list>
 #include <string>
 #include <switch.h>
+#include <cstdint>
 
 namespace Payload {
 
