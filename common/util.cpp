@@ -17,15 +17,48 @@
 
 #include <switch.h>
 
+#include <optional>
+#include <cstdio>
+
 namespace util {
 
     bool IsErista() {
-        u64 type=0;
+        static std::optional<bool> impl;
+
+        if (impl.has_value())
+            return *impl;
+
+        u64 type = 0;
 
         if (R_FAILED(splGetConfig(SplConfigItem_HardwareType, &type)))
             return false;
 
-        return type == 0 /* SplHardwareType_Icosa */ || type == 1 /* SplHardwareType_Copper */;
+        impl = (type == 0 /* SplHardwareType_Icosa */ || type == 1 /* SplHardwareType_Copper */);
+
+        return *impl;
+    }
+
+    /**
+     * Since 1.6.0, Atmosphère bpc-mitm overwrites the reboot on mariko to prevent clearing
+     * Timers. We are using those timing registers to communicate with hekate.
+     */
+    bool SupportsMarikoRebootToConfig() {
+        static std::optional<bool> impl;
+
+        if (impl.has_value())
+            return *impl;
+
+        u64 version = 0;
+        
+        if (R_FAILED(splGetConfig(static_cast<SplConfigItem>(65000), &version)))
+            return false;
+
+        const u32 version_minor = (version >> 48) & 0xff;
+        const u32 version_major = (version >> 56) & 0xff;
+
+        impl = (version_major >= 1 && version_minor >= 6);
+
+        return *impl;
     }
 
 }

@@ -19,4 +19,6 @@ namespace util {
 
     bool IsErista();
 
+    bool SupportsMarikoRebootToConfig();
+
 }

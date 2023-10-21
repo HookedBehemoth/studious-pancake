@@ -101,6 +101,25 @@ class PancakeGui : public tsl::Gui {
     }
 };
 
+class PleaseUpdateGui final : public tsl::Gui {
+    virtual tsl::elm::Element *createUI() override {
+        auto const frame = new tsl::elm::OverlayFrame(AppTitle, AppVersion);
+
+        auto const custom = new tsl::elm::CustomDrawer([msgW = 0, msgH = 0](tsl::gfx::Renderer *drawer, u16 x, u16 y, u16 w, u16 h) mutable {
+            drawer->drawString("\uE150", false, x + (w / 2) - (90 / 2), 300, 90, 0xffff);
+            auto [width, height] = drawer->drawString("Update to at least\nAtmosphère 1.6.1", false, x + (w / 2) - (msgW / 2), 380, 25, 0xffff);
+            if (msgW == 0) {
+                msgW = width;
+                msgH = height;
+            }
+        });
+
+        frame->setContent(custom);
+
+        return frame;
+    }
+};
+
 class PancakeOverlay final : public tsl::Overlay {
   public:
     virtual void initServices() override {
@@ -118,7 +137,11 @@ class PancakeOverlay final : public tsl::Overlay {
     }
 
     virtual std::unique_ptr<tsl::Gui> loadInitialGui() override {
-        return std::make_unique<PancakeGui>();
+        if (!util::IsErista() && !util::SupportsMarikoRebootToConfig()) {
+            return std::make_unique<PleaseUpdateGui>();
+        } else {
+            return std::make_unique<PancakeGui>();
+        }
     }
 };
 

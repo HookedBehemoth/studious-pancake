@@ -70,6 +70,32 @@ extern "C" void userAppExit(void) {
 }
 
 int main(int const argc, char const *argv[]) {
+    if (!util::IsErista() && !util::SupportsMarikoRebootToConfig()) {
+        consoleInit(nullptr);
+
+        printf("Update to at least Atmosphère 1.6.1\n");
+
+        consoleUpdate(nullptr);
+
+        /* Configure input */
+        padConfigureInput(8, HidNpadStyleSet_NpadStandard);
+
+        /* Initialize pad */
+        PadState pad;
+        padInitializeAny(&pad);
+
+        while (appletMainLoop()) {
+            /* Update padstate */
+            padUpdate(&pad);
+
+            if (padGetButtonsDown(&pad))
+                break;
+        }
+
+        consoleExit(nullptr);
+        return 0;
+    }
+
     std::vector<TuiItem> items;
 
     /* Load available boot configs */
