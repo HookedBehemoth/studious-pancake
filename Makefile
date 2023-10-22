@@ -17,6 +17,6 @@ dist: all
 	mkdir -p dist/switch/.overlays
 	cp overlay/studious-pancake.ovl dist/switch/.overlays/
 	cp applet/studious-pancake.nro dist/switch/
-	cd dist; zip -r sys-tune-$(VERSION)-$(GITHASH).zip ./**/; cd ../;
+	cd dist; zip -r studious-pancake-$(VERSION)-$(GITHASH).zip ./**/; cd ../;
 
 .PHONY: all applet overlay
